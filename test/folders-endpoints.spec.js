@@ -70,4 +70,77 @@ describe("Folders Endpoints", function () {
       });
     });
   });
+
+  describe("POST /api/folders", () => {
+    it(`creates a folder, responding with 201 and the new folder`, () => {
+      const newFolder = {
+        folder_name: "Test folder that's new",
+      };
+
+      return supertest(app)
+        .post("/api/folders")
+        .send(newFolder)
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.folder_name).to.eql(newFolder.folder_name);
+          expect(res.body).to.have.property("id");
+          expect(res.headers.location).to.eql(`/api/folders/${res.body.id}`);
+        })
+        .then((res) => {
+          supertest(app).get(`/api/folders/${res.body.id}`).expect(res.body);
+        });
+    });
+
+    const requiredFields = ["folder_name"];
+
+    requiredFields.forEach((field) => {
+      const newFolders = {
+        folder_name: "Test folder that's new",
+      };
+
+      it(`Responds with 400 and an error when the ${field} is missing`, () => {
+        delete newFolders[field];
+
+        return supertest(app)
+          .post("/api/folders")
+          .send(newFolders)
+          .expect(400, {
+            error: { message: `Missing '${field}' in request body` },
+          });
+      });
+    });
+  });
+
+  describe(`DELETE /api/folders/:folder_id`, () => {
+    context(`Given no folders`, () => {
+      it(`responds with 404`, () => {
+        const folderId = 123456;
+
+        return supertest(app)
+          .delete(`/api/folders/${folderId}`)
+          .expect(404, { error: { message: `Folder doesn't exist` } });
+      });
+    });
+
+    context(`Given there are folders in the database`, () => {
+      const testFolders = makeFoldersArray();
+
+      beforeEach("insert folder", () => {
+        return db.into("noteful_folders").insert(testFolders);
+      });
+
+      it("Responds with 204 and then removes the folders", () => {
+        const folderToRemove = 2;
+        const expectedFolder = testFolders.filter(
+          (folder) => folder.id !== folderToRemove
+        );
+        return supertest(app)
+          .delete(`/api/folders/${folderToRemove}`)
+          .expect(204)
+          .then((res) => {
+            supertest(app).get("api/folders").expect(expectedFolder);
+          });
+      });
+    });
+  });
 });
