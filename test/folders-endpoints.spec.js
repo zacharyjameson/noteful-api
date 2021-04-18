@@ -36,14 +36,37 @@ describe("Folders Endpoints", function () {
       const testFolders = makeFoldersArray();
 
       beforeEach("insert folder", () => {
-        return db
-            .into("noteful_folders")
-            .insert(testFolders);
+        return db.into("noteful_folders").insert(testFolders);
       });
       it(`responds with 200 and all of the folders`, () => {
+        return supertest(app).get("/api/folders").expect(200, testFolders);
+      });
+    });
+  });
+
+  describe(`GET /api/folders//:folder_id`, () => {
+    context(`Given no folders`, () => {
+      it(`responds with 404`, () => {
+        const folderId = 123456;
         return supertest(app)
-        .get("/api/folders")
-        .expect(200, testFolders);
+          .get(`/api/folders/${folderId}`)
+          .expect(404, { error: { message: `Folder doesn't exist` } });
+      });
+    });
+
+    context("Given there are folders in the database", () => {
+      const testFolders = makeFoldersArray();
+
+      beforeEach("insert folders", () => {
+        return db.into("noteful_folders").insert(testFolders);
+      });
+      it(`responds with 200 and the specified folder`, () => {
+        const folderId = 2;
+        const expectedFolder = testFolders[folderId - 1];
+
+        return supertest(app)
+          .get(`/api/folders/${folderId}`)
+          .expect(200, expectedFolder);
       });
     });
   });
