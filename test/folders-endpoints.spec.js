@@ -1,7 +1,7 @@
 const knex = require("knex");
 const supertest = require("supertest");
 const app = require("../src/app");
-const { expect } = require('chai');
+const { expect } = require("chai");
 const { makeFoldersArray } = require("./folders.fixtures");
 
 describe("Folders Endpoints", function () {
@@ -29,6 +29,21 @@ describe("Folders Endpoints", function () {
     context(`Given no folders`, () => {
       it(`responds with 200 and an empty list`, () => {
         return supertest(app).get("/api/folders").expect(200, []);
+      });
+    });
+
+    context(`Given there are folders in the database`, () => {
+      const testFolders = makeFoldersArray();
+
+      beforeEach("insert folder", () => {
+        return db
+            .into("noteful_folders")
+            .insert(testFolders);
+      });
+      it(`responds with 200 and all of the folders`, () => {
+        return supertest(app)
+        .get("/api/folders")
+        .expect(200, testFolders);
       });
     });
   });
