@@ -20,7 +20,7 @@ app.use(cors());
 app.use("/api/folders", foldersRouter);
 app.use("/api/notes", noteRouter);
 
-app.get("/api", (req, res) => {
+app.get("/", (req, res) => {
   res.send("Hello, world!");
 });
 
