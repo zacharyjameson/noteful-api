@@ -25,10 +25,10 @@ describe("Folders Endpoints", function () {
     db.raw("TRUNCATE noteful_folders, noteful_notes RESTART IDENTITY CASCADE")
   );
 
-  describe(`GET /api/folders`, () => {
+  describe(`GET /api/folder`, () => {
     context(`Given no folders`, () => {
       it(`responds with 200 and an empty list`, () => {
-        return supertest(app).get("/api/folders").expect(200, []);
+        return supertest(app).get("/api/folder").expect(200, []);
       });
     });
 
@@ -39,17 +39,17 @@ describe("Folders Endpoints", function () {
         return db.into("noteful_folders").insert(testFolders);
       });
       it(`responds with 200 and all of the folders`, () => {
-        return supertest(app).get("/api/folders").expect(200, testFolders);
+        return supertest(app).get("/api/folder").expect(200, testFolders);
       });
     });
   });
 
-  describe(`GET /api/folders//:folder_id`, () => {
+  describe(`GET /api/folder/:folder_id`, () => {
     context(`Given no folders`, () => {
       it(`responds with 404`, () => {
         const folderId = 123456;
         return supertest(app)
-          .get(`/api/folders/${folderId}`)
+          .get(`/api/folder/${folderId}`)
           .expect(404, { error: { message: `Folder doesn't exist` } });
       });
     });
@@ -65,29 +65,29 @@ describe("Folders Endpoints", function () {
         const expectedFolder = testFolders[folderId - 1];
 
         return supertest(app)
-          .get(`/api/folders/${folderId}`)
+          .get(`/api/folder/${folderId}`)
           .expect(200, expectedFolder);
       });
     });
   });
 
-  describe("POST /api/folders", () => {
+  describe("POST /api/folder", () => {
     it(`creates a folder, responding with 201 and the new folder`, () => {
       const newFolder = {
         folder_name: "Test folder that's new",
       };
 
       return supertest(app)
-        .post("/api/folders")
+        .post("/api/folder")
         .send(newFolder)
         .expect(201)
         .expect((res) => {
           expect(res.body.folder_name).to.eql(newFolder.folder_name);
           expect(res.body).to.have.property("id");
-          expect(res.headers.location).to.eql(`/api/folders/${res.body.id}`);
+          expect(res.headers.location).to.eql(`/api/folder/${res.body.id}`);
         })
         .then((res) => {
-          supertest(app).get(`/api/folders/${res.body.id}`).expect(res.body);
+          supertest(app).get(`/api/folder/${res.body.id}`).expect(res.body);
         });
     });
 
@@ -102,7 +102,7 @@ describe("Folders Endpoints", function () {
         delete newFolders[field];
 
         return supertest(app)
-          .post("/api/folders")
+          .post("/api/folder")
           .send(newFolders)
           .expect(400, {
             error: { message: `Missing '${field}' in request body` },
@@ -111,13 +111,13 @@ describe("Folders Endpoints", function () {
     });
   });
 
-  describe(`DELETE /api/folders/:folder_id`, () => {
+  describe(`DELETE /api/folder/:folder_id`, () => {
     context(`Given no folders`, () => {
       it(`responds with 404`, () => {
         const folderId = 123456;
 
         return supertest(app)
-          .delete(`/api/folders/${folderId}`)
+          .delete(`/api/folder/${folderId}`)
           .expect(404, { error: { message: `Folder doesn't exist` } });
       });
     });
@@ -135,10 +135,10 @@ describe("Folders Endpoints", function () {
           (folder) => folder.id !== folderToRemove
         );
         return supertest(app)
-          .delete(`/api/folders/${folderToRemove}`)
+          .delete(`/api/folder/${folderToRemove}`)
           .expect(204)
           .then((res) => {
-            supertest(app).get("api/folders").expect(expectedFolder);
+            supertest(app).get("/api/folder").expect(expectedFolder);
           });
       });
     });
