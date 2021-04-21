@@ -14,8 +14,9 @@ app.use(
     skip: () => (NODE_ENV) => "test",
   })
 );
-app.use(helmet());
+
 app.use(cors());
+app.use(helmet());
 
 app.use("/api/folder", foldersRouter);
 app.use("/api/note", noteRouter);
