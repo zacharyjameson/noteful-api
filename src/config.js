@@ -5,6 +5,6 @@ module.exports = {
     process.env.DATABASE_URL || "postgresql://dunder-mifflin@localhost/noteful",
   TEST_DATABASE_URL:
     process.env.TEST_DATABASE_URL ||
-    "postgresql://zacharyjameson@localhost/noteful-test",
+    "postgresql://dunder-mifflin@localhost/noteful-test",
   SSL: true,
 };
